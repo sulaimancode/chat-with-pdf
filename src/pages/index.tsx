@@ -35,8 +35,8 @@ const QuestionInput = React.forwardRef<
   }
 >(({ query, handleChange, sendQuery, setQuery }, ref) => {
   return (
-    <div className="bg-custom-gradient dark:bg-custom-gradient-dark absolute bottom-0 left-0 flex w-full items-center justify-center gap-2 p-4">
-      <div className="bg-gray3 dark:bg-slate3 flex w-5/12 rounded-xl p-2 shadow-md">
+    <div className="absolute bottom-0 left-0 flex w-full items-center justify-center gap-2 bg-custom-gradient p-4 dark:bg-custom-gradient-dark">
+      <div className="flex w-5/12 rounded-xl bg-gray3 p-2 shadow-md dark:bg-slate3">
         <textarea
           ref={ref}
           value={query}
@@ -68,7 +68,7 @@ const QuestionInput = React.forwardRef<
 QuestionInput.displayName = "QuestionInput";
 
 const Question = ({ question }: { question: string }) => (
-  <p className="border-gray6 dark:border-slate6 w-fit self-end rounded-t-lg rounded-bl-lg border px-3 py-1">
+  <p className="w-fit self-end rounded-t-lg rounded-bl-lg bg-sky9 px-3 py-1 dark:bg-blue9">
     {question}
   </p>
 );
@@ -229,7 +229,7 @@ const Home: NextPage = () => {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="bg-gray2 text-gray12 dark:bg-slate2 dark:text-slate12 relative grid h-screen grid-cols-2">
+      <main className="relative grid h-screen grid-cols-2 bg-gray2 text-gray12 dark:bg-slate2 dark:text-slate12">
         <div className="flex h-full flex-col overflow-hidden pl-8 pt-8">
           {!file && (
             <>
@@ -237,7 +237,7 @@ const Home: NextPage = () => {
               <input onChange={onFileChange} type="file" />
             </>
           )}
-          <ScrollArea className="border-slate7 h-[80%] rounded-lg border">
+          <ScrollArea className="h-[80%] rounded-lg border border-slate7">
             <ScrollAreaViewport className="h-full">
               {file && (
                 <Document
@@ -250,7 +250,7 @@ const Home: NextPage = () => {
                       <Page
                         key={`page_${index + 1}`}
                         pageNumber={index + 1}
-                        className="!bg-gray2 dark:!bg-slate2 flex items-center justify-center"
+                        className="flex items-center justify-center !bg-gray2 dark:!bg-slate2"
                         scale={1.2}
                       />
                     ))}

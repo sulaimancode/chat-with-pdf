@@ -7,6 +7,8 @@ import {
   indigoDark,
   cyanDark,
   gray,
+  blue,
+  sky,
 } from "@radix-ui/colors";
 
 export default {
@@ -25,6 +27,8 @@ export default {
         ...indigoDark,
         ...cyanDark,
         ...gray,
+        ...blue,
+        ...sky,
       },
     },
   },
