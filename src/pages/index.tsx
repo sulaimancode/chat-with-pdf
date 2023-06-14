@@ -8,7 +8,6 @@ import "react-pdf/dist/esm/Page/TextLayer.css";
 
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import { ScrollArea, ScrollAreaViewport } from "~/components/ScrollArea";
-import { useBreakpoint } from "~/hooks/useBreakpoints";
 
 const isServer = typeof window === "undefined";
 
@@ -122,14 +121,11 @@ const Home: NextPage = () => {
   const [isAtBottom, setIsAtBottom] = useState<boolean>(false);
   const [numPages, setNumPages] = useState<number>(0);
   const [file, setFile] = useState<PDFFile>(null);
-  const [scale, setScale] = useState<number>(1.2);
 
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const chatRootRef = useRef<HTMLDivElement>(null);
-
-  const breakpoint = useBreakpoint();
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setQuery(event.target.value);
@@ -153,18 +149,6 @@ const Home: NextPage = () => {
       setFile(files[0] || null);
     }
   };
-
-  useEffect(() => {
-    const scaleMap = {
-      sm: 0.95,
-      md: 1.0,
-      lg: 1.2,
-      xl: 1.5,
-      "2xl": 1.5,
-    };
-
-    setScale(scaleMap[breakpoint] || 1.0);
-  }, [breakpoint]);
 
   useEffect(() => {
     const intersectionObserver = new IntersectionObserver(
@@ -266,8 +250,8 @@ const Home: NextPage = () => {
                       <Page
                         key={`page_${index + 1}`}
                         pageNumber={index + 1}
-                        scale={1.3}
                         className="!bg-gray2 dark:!bg-slate2 flex items-center justify-center"
+                        scale={1.2}
                       />
                     ))}
                   </div>
