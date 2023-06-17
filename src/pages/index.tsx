@@ -204,7 +204,7 @@ const Home: NextPage = () => {
     setLoading(true);
     setChat((prev) => [...prev, query, ""]);
 
-    const eventSource = new EventSource("/api/v1/stream?query=" + query);
+    const eventSource = new EventSource("/api/openai-chat-stream");
 
     eventSource.onopen = () => {
       setLoading(false);
