@@ -8,6 +8,7 @@ import "react-pdf/dist/esm/Page/TextLayer.css";
 
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import { ScrollArea, ScrollAreaViewport } from "~/components/ScrollArea";
+import { parseOpenAIStreamChunk } from "~/utils/parse-openai-stream-chunk";
 
 const isServer = typeof window === "undefined";
 
@@ -213,30 +214,9 @@ const Home: NextPage = () => {
     eventSource.onmessage = (event) => {
       const data = event.data as unknown as string;
 
-      const lines: string[] = data
-        .toString()
-        .split("\n")
-        .filter((line: string) => line.trim() !== "");
-
-      for (const line of lines) {
-        const message = line.replace(/^data: /, "");
-        if (message === "[DONE]") {
-          return; // Stream finished
-        }
-
-        try {
-          //eslint-disable-next-line
-          const parsed = JSON.parse(message);
-          //eslint-disable-next-line
-          const content = parsed.choices[0].delta.content;
-
-          if (content) {
-            setCurrentAnswer((prev) => [...prev, content as string]);
-          }
-        } catch (error) {
-          console.log("Could not JSON parse stream message", message, error);
-        }
-      }
+      parseOpenAIStreamChunk(data, (data) =>
+        setCurrentAnswer((prev) => [...prev, data])
+      );
     };
 
     eventSource.onerror = () => {
