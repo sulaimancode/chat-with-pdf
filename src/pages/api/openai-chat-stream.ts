@@ -1,25 +1,42 @@
-/* eslint-disable */
-import type { NextApiRequest, NextApiResponse } from "next";
-import { CreateChatCompletionRequest } from "openai";
-import { streamOpenAIResponse } from "~/utils/stream-openai-response";
+import type { NextApiRequest } from "next";
+import { Configuration, OpenAIApi } from "openai-edge";
+import { env } from "~/env.mjs";
 
-export default async function handler(_: NextApiRequest, res: NextApiResponse) {
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  res.setHeader("Access-Control-Allow-Origin", "*");
+export const config = {
+  runtime: "edge",
+};
 
-  const openaiCompletionOptions: CreateChatCompletionRequest = {
-    model: "gpt-3.5-turbo",
-    messages: [{ role: "user", content: "What is a bitcoin?" }],
-    max_tokens: 150,
-    temperature: 0,
-    stream: true,
-  };
+const configuration = new Configuration({
+  apiKey: env.OPENAI_API_KEY,
+});
 
-  const onData = (data: string) => {
-    res.write(`data: ${data}\n\n`);
-  };
+const openai = new OpenAIApi(configuration);
 
-  streamOpenAIResponse(openaiCompletionOptions, onData, () => res.end());
+export default async function handler(req: NextApiRequest) {
+  try {
+    const completion = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: "What is a bitcoin?" }],
+      max_tokens: 150,
+      temperature: 0,
+      stream: true,
+    });
+
+    return new Response(completion.body, {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "text/event-stream;charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
+        "X-Accel-Buffering": "no",
+      },
+    });
+  } catch (error: any) {
+    console.error(error);
+    return new Response(JSON.stringify(error), {
+      status: 400,
+      headers: {
+        "content-type": "application/json",
+      },
+    });
+  }
 }
