@@ -13,6 +13,7 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 export default async function handler(req: NextApiRequest) {
+  //TODO: get the question from the request body
   try {
     const completion = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",
