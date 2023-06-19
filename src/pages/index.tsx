@@ -148,6 +148,27 @@ const Home: NextPage = () => {
 
     if (files && files[0]) {
       setFile(files[0] || null);
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        const base64data = result.split(",")[1];
+
+        fetch("/api/ingest-pdf", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(base64data),
+        })
+          .then((response) => response.json())
+          .then((data) => console.log(data))
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      };
+
+      reader.readAsDataURL(files[0]);
     }
   };
 
