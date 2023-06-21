@@ -2,11 +2,30 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [pgvector(map: "vector", schema: "extensions")]
+}
+
+model Document {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  name      String
+  Chunk     Chunk[]
+}
+
+model Chunk {
+  id         String    @id @default(cuid()) 
+  content    String
+  tokenCount Int
+  embedding  Unsupported("vector")
+  Document   Document  @relation(fields: [documentId], references: [id])
+  documentId String
 }
