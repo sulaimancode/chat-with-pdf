@@ -154,7 +154,9 @@ const Home: NextPage = () => {
         const result = reader.result as string;
         const base64data = result.split(",")[1];
 
-        fetch("/api/ingest-pdf", {
+        const documentName = encodeURIComponent(files[0]!.name);
+
+        fetch(`/api/ingest-pdf?documentName=${documentName}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -3,7 +3,9 @@ import PDFParser from "pdf2json";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
+    const documentName = req.query.documentName as string;
     const pdfData = req.body as string;
+
     const buffer = Buffer.from(pdfData, "base64");
     const pdfParser = new PDFParser();
     pdfParser.on("pdfParser_dataError", (errData) => console.error(errData));
