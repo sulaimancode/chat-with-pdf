@@ -10,7 +10,7 @@ datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
   directUrl  = env("DIRECT_URL")
-  extensions = [pgvector(map: "vector", schema: "extensions")]
+  extensions = [pgvector(map: "vector")]
 }
 
 model Document {
@@ -19,6 +19,8 @@ model Document {
   updatedAt DateTime  @updatedAt
   name      String
   chunks    Chunk[]
+
+  @@map("document")
 }
 
 model Chunk {
@@ -28,4 +30,6 @@ model Chunk {
   embedding  Unsupported("vector")?
   document   Document  @relation(fields: [documentId], references: [id])
   documentId String
+
+  @@map("chunk")
 }
