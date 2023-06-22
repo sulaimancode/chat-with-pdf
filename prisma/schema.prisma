@@ -18,14 +18,14 @@ model Document {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   name      String
-  Chunk     Chunk[]
+  chunks    Chunk[]
 }
 
 model Chunk {
   id         String    @id @default(cuid()) 
   content    String
   tokenCount Int
-  embedding  Unsupported("vector")
-  Document   Document  @relation(fields: [documentId], references: [id])
+  embedding  Unsupported("vector")?
+  document   Document  @relation(fields: [documentId], references: [id])
   documentId String
 }

@@ -16,7 +16,7 @@ CREATE TABLE "Chunk" (
     "id" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "tokenCount" INTEGER NOT NULL,
-    "embedding" vector NOT NULL,
+    "embedding" vector,
     "documentId" TEXT NOT NULL,
 
     CONSTRAINT "Chunk_pkey" PRIMARY KEY ("id")
