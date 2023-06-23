@@ -14,9 +14,9 @@ datasource db {
 }
 
 model Document {
-  id        String    @id @default(cuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   name      String
   chunks    Chunk[]
 
@@ -24,12 +24,13 @@ model Document {
 }
 
 model Chunk {
-  id         String    @id @default(cuid()) 
+  id         String                 @id @default(cuid())
+  page       Int
   content    String
-  tokenCount Int
+  tokenCount Int                    @map("token_count")
   embedding  Unsupported("vector")?
-  document   Document  @relation(fields: [documentId], references: [id])
-  documentId String
+  document   Document               @relation(fields: [documentId], references: [id])
+  documentId String                 @map("document_id")
 
   @@map("chunk")
 }
