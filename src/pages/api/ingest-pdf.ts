@@ -82,6 +82,7 @@ export default async function handler(
             content,
             tokenCount: tokens.length,
             documentId: newDocument.id,
+            page: index + 1,
           },
         });
 
