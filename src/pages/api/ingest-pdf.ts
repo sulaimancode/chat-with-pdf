@@ -1,18 +1,9 @@
 /* eslint-disable */
-import { PrismaClient } from "@prisma/client";
+import { openai } from "~/utils/openai";
 import type { NextApiRequest, NextApiResponse } from "next";
 import PDFParser from "pdf2json";
 import { encode } from "gpt-3-encoder";
-import { Configuration, OpenAIApi } from "openai-edge";
-import { env } from "~/env.mjs";
-
-const configuration = new Configuration({
-  apiKey: env.OPENAI_API_KEY,
-});
-
-const openai = new OpenAIApi(configuration);
-
-const prisma = new PrismaClient();
+import { prisma } from "~/utils/prisma";
 
 async function generateEmbedding(input: string) {
   const embeddingResponse = await openai.createEmbedding({

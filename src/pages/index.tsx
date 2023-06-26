@@ -228,7 +228,11 @@ const Home: NextPage = () => {
     setLoading(true);
     setChat((prev) => [...prev, query, ""]);
 
-    const eventSource = new EventSource("/api/openai-chat-stream");
+    const docName = (typeof file !== "string" && file?.name) || "";
+
+    const eventSource = new EventSource(
+      `/api/openai-chat-stream?q=${query}&doc=${docName}`
+    );
 
     eventSource.onopen = () => {
       setLoading(false);
