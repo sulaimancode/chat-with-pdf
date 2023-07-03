@@ -20,7 +20,21 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method === "POST") {
-    const { pageNumber, pageText, documentName } = req.body;
+    const { documentId, pageNumber, pageText, documentName } = req.body;
+
+    const documentExists = await prisma.document.findFirst({
+      where: { name: documentName },
+    });
+
+    // For now, don't create documents with duplicate names
+    // until we have a better way of preserving the
+    // document id in the frontend or have a user model
+    // if (documentExists) {
+    //   res
+    //     .status(200)
+    //     .json({ status: "success", message: "PDF already exists" });
+    //   return;
+    // }
 
     console.log(`Creating ${documentName} entry...`);
     const newOrExistingDocument = await prisma.document.upsert({

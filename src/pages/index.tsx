@@ -5,8 +5,11 @@ import { DotsHorizontalIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
 import { pdfjs, Document, Page } from "react-pdf";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
+import { v4 as uuidv4 } from "uuid";
 
 import type { PDFDocumentProxy } from "pdfjs-dist";
+import type { TextItem } from "pdfjs-dist/types/src/display/api";
+
 import { ScrollArea, ScrollAreaViewport } from "~/components/ScrollArea";
 import { parseOpenAIStreamChunk } from "~/utils/parse-openai-stream-chunk";
 
@@ -137,10 +140,38 @@ const Home: NextPage = () => {
     }
   };
 
-  const onDocumentLoadSuccess = ({
-    numPages: nextNumPages,
-  }: PDFDocumentProxy) => {
-    setNumPages(nextNumPages);
+  const onDocumentLoadSuccess = async (d: PDFDocumentProxy) => {
+    if (file) {
+      const documentName = (file as File).name;
+      const documentId = uuidv4();
+
+      for (let i = 1; i <= d.numPages; i++) {
+        const page = await d.getPage(i).then((p) => p.getTextContent());
+        const pageText = page.items
+          .map((item) => (item as TextItem).str)
+          .join(" ");
+
+        fetch("/api/ingest-page", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            documentName,
+            documentId,
+            pageNumber: i,
+            pageText,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => console.log(data))
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+    }
+
+    setNumPages(d.numPages);
   };
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,29 +179,6 @@ const Home: NextPage = () => {
 
     if (files && files[0]) {
       setFile(files[0] || null);
-      const reader = new FileReader();
-
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        const base64data = result.split(",")[1];
-
-        const documentName = encodeURIComponent(files[0]!.name);
-
-        fetch(`/api/ingest-pdf?documentName=${documentName}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(base64data),
-        })
-          .then((response) => response.json())
-          .then((data) => console.log(data))
-          .catch((error) => {
-            console.error("Error:", error);
-          });
-      };
-
-      reader.readAsDataURL(files[0]);
     }
   };
 
