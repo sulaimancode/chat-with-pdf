@@ -29,6 +29,13 @@ const options = {
 
 type PDFFile = string | File | null;
 
+type RawPage = {
+  docId: string;
+  docName: string;
+  page: number;
+  content: string;
+};
+
 const QuestionInput = React.forwardRef<
   HTMLTextAreaElement,
   {
@@ -142,26 +149,28 @@ const Home: NextPage = () => {
 
   const onDocumentLoadSuccess = async (d: PDFDocumentProxy) => {
     if (file) {
-      const documentName = (file as File).name;
-      const documentId = uuidv4();
+      const docName = (file as File).name;
+      const docId = uuidv4();
+      const chunkSize = 10;
 
-      for (let i = 1; i <= d.numPages; i++) {
-        const page = await d.getPage(i).then((p) => p.getTextContent());
-        const pageText = page.items
-          .map((item) => (item as TextItem).str)
-          .join(" ");
+      for (let i = 1; i <= d.numPages; i += chunkSize) {
+        const pages: RawPage[] = [];
 
-        fetch("/api/ingest-page", {
+        for (let j = 0; j < chunkSize && i + j <= d.numPages; j++) {
+          const page = await d.getPage(i + j).then((p) => p.getTextContent());
+          const pageText = page.items
+            .map((item) => (item as TextItem).str)
+            .join(" ");
+
+          pages.push({ docId, docName, page: i + j, content: pageText });
+        }
+
+        fetch("/api/upload-pages", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            documentName,
-            documentId,
-            pageNumber: i,
-            pageText,
-          }),
+          body: JSON.stringify({ pages }),
         })
           .then((response) => response.json())
           .then((data) => console.log(data))
