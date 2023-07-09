@@ -291,6 +291,7 @@ const Home: NextPage = () => {
               {file && (
                 <Document
                   file={file}
+                  /* eslint-disable-next-line */
                   onLoadSuccess={onDocumentLoadSuccess}
                   options={options}
                 >
