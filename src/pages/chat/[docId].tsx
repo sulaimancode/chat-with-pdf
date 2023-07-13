@@ -126,7 +126,7 @@ const Chat: NextPage = ({
     }
   }, [answerCompleted, currentAnswer]);
 
-  if (!documentId) {
+  if (!documentId || typeof documentId !== "string") {
     return <div>404 document does not exist</div>;
   }
 
@@ -187,10 +187,10 @@ const Chat: NextPage = ({
     setLoading(true);
     setChat((prev) => [...prev, query, ""]);
 
-    const docName = (typeof file !== "string" && file?.name) || "";
+    // const docName = (typeof file !== "string" && file?.name) || "";
 
     const eventSource = new EventSource(
-      `/api/openai-chat-stream?q=${query}&doc=${docName}`
+      `/api/openai-chat-stream?q=${query}&docId=${documentId}`
     );
 
     eventSource.onopen = () => {

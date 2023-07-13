@@ -38,14 +38,15 @@ export default async function handler(req: NextApiRequest) {
     const searchParams = req.url?.split("?")[1];
     const query = new URLSearchParams(searchParams);
     const question = query.get("q");
-    const doc = query.get("doc");
+    const docId = query.get("docId");
 
     const embedding = await generateEmbedding(
       (question as string)?.replace(/\n/g, " ")
     );
 
-    const postgrestResponse = await supabaseClient.rpc("match_chunk_sections", {
+    const postgrestResponse = await supabaseClient.rpc("match_chunks", {
       vectorquery: embedding,
+      documentid: docId,
     });
 
     const error = postgrestResponse.error;
@@ -80,9 +81,8 @@ export default async function handler(req: NextApiRequest) {
     }
 
     const prompt = `
-You are a very helpful ai assistant. Given some sections (listed below)
+You are a very helpful AI assistant. Given some sections (listed below)
 of a document and a question you will give an answer based on the given sections.
-Sometimes the name of the document is also - document name is ${doc}.
 
 Context sections: ${contextText}
 
