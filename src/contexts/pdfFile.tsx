@@ -1,4 +1,5 @@
 import React, { createContext, useState } from "react";
+
 type PDFFile = string | File | null;
 
 const PdfContext = createContext<{
@@ -6,9 +7,7 @@ const PdfContext = createContext<{
   setPdfFile: (file: PDFFile) => void;
 }>({ pdfFile: null, setPdfFile: () => null });
 
-export const PdfProvider: React.FC<React.PropsWithChildren> = ({
-  children,
-}) => {
+const PdfProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [pdfFile, setPdfFile] = useState<PDFFile>(null);
 
   return (
@@ -17,3 +16,5 @@ export const PdfProvider: React.FC<React.PropsWithChildren> = ({
     </PdfContext.Provider>
   );
 };
+
+export { PdfContext, PdfProvider };

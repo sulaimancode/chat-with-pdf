@@ -5,29 +5,17 @@ import type {
 } from "next";
 import { prisma } from "~/utils/prisma";
 import Head from "next/head";
-import React, { useEffect, useRef, useState } from "react";
-import { pdfjs, Document, Page } from "react-pdf";
-import "react-pdf/dist/esm/Page/AnnotationLayer.css";
-import "react-pdf/dist/esm/Page/TextLayer.css";
-import { v4 as uuidv4 } from "uuid";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { Document, Page } from "react-pdf";
 
 import type { PDFDocumentProxy } from "pdfjs-dist";
-import type { TextItem } from "pdfjs-dist/types/src/display/api";
 
 import { ScrollArea, ScrollAreaViewport } from "~/components/ScrollArea";
 import { parseOpenAIStreamChunk } from "~/utils/parse-openai-stream-chunk";
 import { Question } from "~/components/Question";
 import { Answer } from "~/components/Answer";
 import { QuestionInput } from "~/components/QuestionInput";
-
-const isServer = typeof window === "undefined";
-
-if (!isServer) {
-  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    "pdfjs-dist/build/pdf.worker.min.js",
-    import.meta.url
-  ).toString();
-}
+import { PdfContext } from "~/contexts/pdfFile";
 
 const options = {
   cMapUrl: "cmaps/",
@@ -35,13 +23,6 @@ const options = {
 };
 
 type PDFFile = string | File | null;
-
-type RawPage = {
-  docId: string;
-  docName: string;
-  page: number;
-  content: string;
-};
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const { docId } = params!;
@@ -69,12 +50,14 @@ const Chat: NextPage = ({
   const [answerCompleted, setAnswerCompleted] = useState<boolean>(false);
   const [isAtBottom, setIsAtBottom] = useState<boolean>(false);
   const [numPages, setNumPages] = useState<number>(0);
-  const [file, setFile] = useState<PDFFile>(null);
 
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const chatRootRef = useRef<HTMLDivElement>(null);
+
+  const { pdfFile, setPdfFile } = useContext(PdfContext);
+  console.log(pdfFile);
 
   useEffect(() => {
     const intersectionObserver = new IntersectionObserver(
@@ -139,39 +122,7 @@ const Chat: NextPage = ({
     }
   };
 
-  const onDocumentLoadSuccess = async (d: PDFDocumentProxy) => {
-    if (file) {
-      const docName = (file as File).name;
-      const docId = uuidv4();
-      const chunkSize = 10;
-
-      for (let i = 1; i <= d.numPages; i += chunkSize) {
-        const pages: RawPage[] = [];
-
-        for (let j = 0; j < chunkSize && i + j <= d.numPages; j++) {
-          const page = await d.getPage(i + j).then((p) => p.getTextContent());
-          const pageText = page.items
-            .map((item) => (item as TextItem).str)
-            .join(" ");
-
-          pages.push({ docId, docName, page: i + j, content: pageText });
-        }
-
-        fetch("/api/upload-pages", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ pages }),
-        })
-          .then((response) => response.json())
-          .then((data) => console.log(data))
-          .catch((error) => {
-            console.error("Error:", error);
-          });
-      }
-    }
-
+  const onDocumentLoadSuccess = (d: PDFDocumentProxy) => {
     setNumPages(d.numPages);
   };
 
@@ -179,7 +130,7 @@ const Chat: NextPage = ({
     const { files } = event.target;
 
     if (files && files[0]) {
-      setFile(files[0] || null);
+      setPdfFile(files[0] || null);
     }
   };
 
@@ -222,17 +173,11 @@ const Chat: NextPage = ({
       </Head>
       <main className="relative grid h-screen grid-cols-2 bg-gray2 text-gray12 dark:bg-slate2 dark:text-slate12">
         <div className="flex h-full flex-col overflow-hidden pl-8 pt-8">
-          {!file && (
-            <>
-              <label htmlFor="file">Load from file:</label>
-              <input onChange={onFileChange} type="file" />
-            </>
-          )}
           <ScrollArea className="h-[80%] rounded-lg border border-slate7">
             <ScrollAreaViewport className="h-full">
-              {file && (
+              {pdfFile && (
                 <Document
-                  file={file}
+                  file={pdfFile}
                   /* eslint-disable-next-line */
                   onLoadSuccess={onDocumentLoadSuccess}
                   options={options}
