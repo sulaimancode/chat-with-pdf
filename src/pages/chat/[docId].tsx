@@ -164,11 +164,8 @@ const Chat: NextPage = ({
   return (
     <>
       <Head>
-        <title>Ask some text questions</title>
-        <meta
-          name="description"
-          content="Upload some text and ask questions using gpt"
-        />
+        <title>Chat with document</title>
+        <meta name="description" content="Chat with document using openai" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="relative grid h-screen grid-cols-2 bg-gray2 text-gray12 dark:bg-slate2 dark:text-slate12">
