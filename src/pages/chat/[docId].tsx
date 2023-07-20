@@ -6,9 +6,6 @@ import type {
 import { prisma } from "~/utils/prisma";
 import Head from "next/head";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { Document, Page } from "react-pdf";
-
-import type { PDFDocumentProxy } from "pdfjs-dist";
 
 import { ScrollArea, ScrollAreaViewport } from "~/components/ScrollArea";
 import { parseOpenAIStreamChunk } from "~/utils/parse-openai-stream-chunk";
@@ -16,13 +13,6 @@ import { Question } from "~/components/Question";
 import { Answer } from "~/components/Answer";
 import { QuestionInput } from "~/components/QuestionInput";
 import { PdfContext } from "~/contexts/pdfFile";
-
-const options = {
-  cMapUrl: "cmaps/",
-  standardFontDataUrl: "standard_fonts/",
-};
-
-type PDFFile = string | File | null;
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const { docId } = params!;
@@ -36,12 +26,14 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   return {
     props: {
       documentId: document?.id ?? null,
+      documentName: document?.name ?? null,
     },
   };
 };
 
 const Chat: NextPage = ({
   documentId,
+  documentName,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const [query, setQuery] = useState<string>("");
   const [currentAnswer, setCurrentAnswer] = useState<string[]>([]);
@@ -49,15 +41,15 @@ const Chat: NextPage = ({
   const [chat, setChat] = useState<string[]>([]);
   const [answerCompleted, setAnswerCompleted] = useState<boolean>(false);
   const [isAtBottom, setIsAtBottom] = useState<boolean>(false);
-  const [numPages, setNumPages] = useState<number>(0);
+  const [objectUrl, setObjectUrl] = useState<string>("");
 
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const chatRootRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const { pdfFile, setPdfFile } = useContext(PdfContext);
-  console.log(pdfFile);
 
   useEffect(() => {
     const intersectionObserver = new IntersectionObserver(
@@ -109,6 +101,15 @@ const Chat: NextPage = ({
     }
   }, [answerCompleted, currentAnswer]);
 
+  useEffect(() => {
+    if (pdfFile) {
+      const url = window.URL.createObjectURL(pdfFile as File);
+      setObjectUrl(url);
+
+      return () => window.URL.revokeObjectURL(url);
+    }
+  }, [pdfFile]);
+
   if (!documentId || typeof documentId !== "string") {
     return <div>404 document does not exist</div>;
   }
@@ -122,10 +123,6 @@ const Chat: NextPage = ({
     }
   };
 
-  const onDocumentLoadSuccess = (d: PDFDocumentProxy) => {
-    setNumPages(d.numPages);
-  };
-
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = event.target;
 
@@ -137,8 +134,6 @@ const Chat: NextPage = ({
   const sendQuery = () => {
     setLoading(true);
     setChat((prev) => [...prev, query, ""]);
-
-    // const docName = (typeof file !== "string" && file?.name) || "";
 
     const eventSource = new EventSource(
       `/api/openai-chat-stream?q=${query}&docId=${documentId}`
@@ -169,30 +164,30 @@ const Chat: NextPage = ({
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="relative grid h-screen grid-cols-2 bg-gray2 text-gray12 dark:bg-slate2 dark:text-slate12">
-        <div className="flex h-full flex-col overflow-hidden pl-8 pt-8">
-          <ScrollArea className="h-[80%] rounded-lg border border-slate7">
-            <ScrollAreaViewport className="h-full">
-              {pdfFile && (
-                <Document
-                  file={pdfFile}
-                  /* eslint-disable-next-line */
-                  onLoadSuccess={onDocumentLoadSuccess}
-                  options={options}
-                >
-                  <div className="flex flex-col">
-                    {Array.from(new Array(numPages), (el, index) => (
-                      <Page
-                        key={`page_${index + 1}`}
-                        pageNumber={index + 1}
-                        className="flex items-center justify-center !bg-gray2 dark:!bg-slate2"
-                        scale={1.2}
-                      />
-                    ))}
-                  </div>
-                </Document>
-              )}
-            </ScrollAreaViewport>
-          </ScrollArea>
+        <div className="flex h-full flex-col overflow-hidden pl-1 pt-1">
+          {pdfFile ? (
+            <iframe src={objectUrl} className="h-full" />
+          ) : (
+            <div className="flex h-full items-center justify-center gap-2">
+              <p>Document unloaded</p>
+
+              <input
+                onChange={onFileChange}
+                type="file"
+                id="fileElement"
+                className="hidden"
+                ref={fileRef}
+              />
+              <button
+                onClick={() => {
+                  if (fileRef.current) fileRef.current.click();
+                }}
+                className="rounded bg-blue-500 px-4 py-2 hover:bg-blue-700"
+              >
+                Choose {documentName} to view PDF
+              </button>
+            </div>
+          )}
         </div>
         <div
           className="relative flex h-full flex-col overflow-hidden"
