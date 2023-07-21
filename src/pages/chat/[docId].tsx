@@ -12,7 +12,7 @@ import { parseOpenAIStreamChunk } from "~/utils/parse-openai-stream-chunk";
 import { Question } from "~/components/Question";
 import { Answer } from "~/components/Answer";
 import { QuestionInput } from "~/components/QuestionInput";
-import { PdfContext } from "~/contexts/pdfFile";
+import { RecentFilesContext } from "~/contexts/RecentFilesContext";
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const { docId } = params!;
@@ -49,7 +49,8 @@ const Chat: NextPage = ({
   const chatRootRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const { pdfFile, setPdfFile } = useContext(PdfContext);
+  const { currentFile, setCurrentFile, recentFiles } =
+    useContext(RecentFilesContext);
 
   useEffect(() => {
     const intersectionObserver = new IntersectionObserver(
@@ -102,13 +103,17 @@ const Chat: NextPage = ({
   }, [answerCompleted, currentAnswer]);
 
   useEffect(() => {
-    if (pdfFile) {
-      const url = window.URL.createObjectURL(pdfFile as File);
+    const recentFile = recentFiles.find((f) => f.docId == documentId);
+
+    if (currentFile || recentFile) {
+      const url = window.URL.createObjectURL(
+        (currentFile || recentFile?.file) as File
+      );
       setObjectUrl(url);
 
       return () => window.URL.revokeObjectURL(url);
     }
-  }, [pdfFile]);
+  }, [currentFile, documentId, recentFiles]);
 
   if (!documentId || typeof documentId !== "string") {
     return <div>404 document does not exist</div>;
@@ -127,7 +132,7 @@ const Chat: NextPage = ({
     const { files } = event.target;
 
     if (files && files[0]) {
-      setPdfFile(files[0] || null);
+      setCurrentFile(files[0] || null);
     }
   };
 
@@ -165,7 +170,7 @@ const Chat: NextPage = ({
       </Head>
       <div className="relative grid h-screen grid-cols-2">
         <div className="flex h-full flex-col overflow-hidden pl-1 pt-1">
-          {pdfFile ? (
+          {currentFile ? (
             <iframe src={objectUrl} className="h-full" />
           ) : (
             <div className="flex h-full items-center justify-center gap-2">

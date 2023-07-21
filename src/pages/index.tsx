@@ -1,12 +1,13 @@
 import { type NextPage } from "next";
 import { useContext, useEffect, useRef, useState } from "react";
-import { PdfContext } from "~/contexts/pdfFile";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { TextItem } from "pdfjs-dist/types/src/display/api";
 import { v4 as uuidv4 } from "uuid";
 import { Document } from "react-pdf";
 import { useRouter } from "next/router";
 import { Progress } from "~/components/Progress";
+import { RecentFilesContext } from "~/contexts/RecentFilesContext";
+import Link from "next/link";
 
 type RawPage = {
   docId: string;
@@ -21,7 +22,8 @@ const options = {
 };
 
 const Home: NextPage = () => {
-  const { pdfFile, setPdfFile } = useContext(PdfContext);
+  const { currentFile, setCurrentFile, addFile, recentFiles } =
+    useContext(RecentFilesContext);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [progressCount, setProgressCount] = useState(0);
@@ -34,7 +36,7 @@ const Home: NextPage = () => {
     const { files } = event.target;
 
     if (files && files[0]) {
-      setPdfFile(files[0] || null);
+      setCurrentFile(files[0] || null);
     }
   };
 
@@ -53,14 +55,14 @@ const Home: NextPage = () => {
   };
 
   useEffect(() => {
-    if (pdfFile) {
-      setPdfFile(null);
+    if (currentFile) {
+      setCurrentFile(null);
     }
   }, []);
 
   const onDocumentLoadSuccess = async (d: PDFDocumentProxy) => {
-    if (pdfFile) {
-      const docName = (pdfFile as File).name;
+    if (currentFile) {
+      const docName = (currentFile as File).name;
       const docId = uuidv4();
       const chunkSize = 10;
       const promises: Promise<void>[] = [];
@@ -87,16 +89,18 @@ const Home: NextPage = () => {
       await Promise.all(promises)
         .then(async () => {
           await router.push(`/chat/${docId}`);
+
+          addFile({ docId, docName, file: currentFile as File });
           setLoading(false);
           setProgressCount(0);
           setNumPromises(0);
         })
         .catch((error) => {
           setError(true);
-
           setLoading(false);
           setProgressCount(0);
           setNumPromises(0);
+
           console.error("Error:", error);
         });
     }
@@ -128,11 +132,29 @@ const Home: NextPage = () => {
           >
             Choose a PDF file
           </button>
+          {recentFiles.length > 0 && (
+            <div className="m-4 flex flex-col gap-2 self-start">
+              <p className="text-lg font-semibold">Recent files</p>
+              <div className="flex flex-col gap-1">
+                {recentFiles.map((file) => (
+                  <Link
+                    key={file.docId}
+                    onClick={() => {
+                      setCurrentFile(file.file);
+                    }}
+                    href={`/chat/${file.docId}`}
+                  >
+                    {file.docName}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
-      {pdfFile && (
+      {currentFile && (
         <Document
-          file={pdfFile}
+          file={currentFile}
           /* eslint-disable-next-line */
           onLoadSuccess={onDocumentLoadSuccess}
           options={options}
