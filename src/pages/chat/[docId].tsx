@@ -182,7 +182,7 @@ const Chat: NextPage = ({
                 onClick={() => {
                   if (fileRef.current) fileRef.current.click();
                 }}
-                className="rounded bg-blue-500 px-4 py-2 hover:bg-blue-700"
+                className="rounded bg-sky9 px-4 py-2 hover:bg-sky11 dark:bg-blue9 dark:hover:bg-blue11"
               >
                 Choose {documentName} to view PDF
               </button>
