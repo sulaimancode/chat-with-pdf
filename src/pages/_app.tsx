@@ -5,6 +5,7 @@ import "~/styles/globals.css";
 import { pdfjs } from "react-pdf";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
+import { Layout } from "~/components/Layout";
 
 const isServer = typeof window === "undefined";
 
@@ -17,9 +18,11 @@ if (!isServer) {
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
-    <PdfProvider>
-      <Component {...pageProps} />
-    </PdfProvider>
+    <Layout>
+      <PdfProvider>
+        <Component {...pageProps} />
+      </PdfProvider>
+    </Layout>
   );
 };
 

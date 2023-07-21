@@ -163,7 +163,7 @@ const Chat: NextPage = ({
         <meta name="description" content="Chat with document using openai" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="relative grid h-screen grid-cols-2 bg-gray2 text-gray12 dark:bg-slate2 dark:text-slate12">
+      <div className="relative grid h-screen grid-cols-2">
         <div className="flex h-full flex-col overflow-hidden pl-1 pt-1">
           {pdfFile ? (
             <iframe src={objectUrl} className="h-full" />
@@ -229,7 +229,7 @@ const Chat: NextPage = ({
           sendQuery={sendQuery}
           ref={textareaRef}
         />
-      </main>
+      </div>
     </>
   );
 };
