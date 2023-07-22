@@ -1,24 +1,27 @@
 import { type NextPage } from "next";
 import { useContext, useEffect, useRef, useState } from "react";
-import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { TextItem } from "pdfjs-dist/types/src/display/api";
 import { v4 as uuidv4 } from "uuid";
-import { Document } from "react-pdf";
 import { useRouter } from "next/router";
 import { Progress } from "~/components/Progress";
 import { RecentFilesContext } from "~/contexts/RecentFilesContext";
+import * as pdfjs from "pdfjs-dist";
 import Link from "next/link";
+
+const isServer = typeof window === "undefined";
+
+if (!isServer) {
+  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+    "pdfjs-dist/build/pdf.worker.min.js",
+    import.meta.url
+  ).toString();
+}
 
 type RawPage = {
   docId: string;
   docName: string;
   page: number;
   content: string;
-};
-
-const options = {
-  cMapUrl: "cmaps/",
-  standardFontDataUrl: "standard_fonts/",
 };
 
 const Home: NextPage = () => {
@@ -36,7 +39,12 @@ const Home: NextPage = () => {
     const { files } = event.target;
 
     if (files && files[0]) {
-      setCurrentFile(files[0] || null);
+      const file = files[0] || null;
+      setCurrentFile(file);
+
+      loadPdf(file).catch((err) => {
+        console.error(err);
+      });
     }
   };
 
@@ -60,20 +68,22 @@ const Home: NextPage = () => {
     }
   }, []);
 
-  const onDocumentLoadSuccess = async (d: PDFDocumentProxy) => {
-    if (currentFile) {
-      const docName = (currentFile as File).name;
+  const loadPdf = async (pdfFile: File | null) => {
+    if (pdfFile) {
+      const pdf = await pdfjs.getDocument(URL.createObjectURL(pdfFile)).promise;
+
+      const docName = pdfFile.name;
       const docId = uuidv4();
       const chunkSize = 10;
       const promises: Promise<void>[] = [];
 
       setError(false);
       setLoading(true);
-      for (let i = 1; i <= d.numPages; i += chunkSize) {
+      for (let i = 1; i <= pdf.numPages; i += chunkSize) {
         const pages: RawPage[] = [];
 
-        for (let j = 0; j < chunkSize && i + j <= d.numPages; j++) {
-          const page = await d.getPage(i + j).then((p) => p.getTextContent());
+        for (let j = 0; j < chunkSize && i + j <= pdf.numPages; j++) {
+          const page = await pdf.getPage(i + j).then((p) => p.getTextContent());
           const pageText = page.items
             .map((item) => (item as TextItem).str)
             .join(" ");
@@ -90,7 +100,7 @@ const Home: NextPage = () => {
         .then(async () => {
           await router.push(`/chat/${docId}`);
 
-          addFile({ docId, docName, file: currentFile as File });
+          addFile({ docId, docName, file: pdfFile });
           setLoading(false);
           setProgressCount(0);
           setNumPromises(0);
@@ -151,14 +161,6 @@ const Home: NextPage = () => {
             </div>
           )}
         </>
-      )}
-      {currentFile && (
-        <Document
-          file={currentFile}
-          /* eslint-disable-next-line */
-          onLoadSuccess={onDocumentLoadSuccess}
-          options={options}
-        />
       )}
 
       {error && <p className="text-red-500">Something went wrong!</p>}
