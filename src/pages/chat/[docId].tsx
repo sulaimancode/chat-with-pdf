@@ -107,7 +107,6 @@ const Chat: NextPage = ({
 
     if (currentFile || recentFile) {
       const file = currentFile?.file || recentFile?.file;
-      console.log(file);
       if (!file) return;
 
       const url = window.URL.createObjectURL(file as File);

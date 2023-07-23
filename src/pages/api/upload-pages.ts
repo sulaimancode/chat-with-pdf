@@ -20,8 +20,6 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method === "POST") {
-    console.log(req.body);
-
     const { pages } = req.body;
 
     const docId = pages[0].docId;
