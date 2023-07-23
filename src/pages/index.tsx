@@ -40,8 +40,6 @@ const Home: NextPage = () => {
 
     if (files && files[0]) {
       const file = files[0] || null;
-      setCurrentFile(file);
-
       loadPdf(file).catch((err) => {
         console.error(err);
       });
@@ -101,6 +99,7 @@ const Home: NextPage = () => {
           await router.push(`/chat/${docId}`);
 
           addFile({ docId, docName, file: pdfFile });
+          setCurrentFile({ docId, docName, file: pdfFile });
           setLoading(false);
           setProgressCount(0);
           setNumPromises(0);
@@ -150,7 +149,7 @@ const Home: NextPage = () => {
                   <Link
                     key={file.docId}
                     onClick={() => {
-                      setCurrentFile(file.file);
+                      setCurrentFile(file);
                     }}
                     href={`/chat/${file.docId}`}
                   >
