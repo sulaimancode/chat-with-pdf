@@ -177,8 +177,8 @@ const Chat: NextPage = ({
         <meta name="description" content="Chat with document using openai" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="relative grid h-screen grid-cols-2">
-        <div className="flex h-full flex-col overflow-hidden pl-1 pt-1">
+      <div className="relative flex h-screen flex-col sm:flex-row">
+        <div className="flex h-full flex-col overflow-hidden pl-1 pt-1 sm:flex-1">
           {currentFile?.file ? (
             <iframe src={objectUrl} className="h-full" />
           ) : (
@@ -204,7 +204,7 @@ const Chat: NextPage = ({
           )}
         </div>
         <div
-          className="relative flex h-full flex-col overflow-hidden"
+          className="relative flex h-full flex-col overflow-hidden sm:flex-1"
           ref={chatRootRef}
         >
           <ScrollArea>

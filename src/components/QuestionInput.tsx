@@ -12,7 +12,7 @@ const QuestionInput = React.forwardRef<
 >(({ query, handleChange, sendQuery, setQuery }, ref) => {
   return (
     <div className="absolute bottom-0 left-0 flex w-full items-center justify-center gap-2 bg-custom-gradient p-4 dark:bg-custom-gradient-dark">
-      <div className="flex w-5/12 rounded-xl bg-gray3 p-2 shadow-md dark:bg-slate3">
+      <div className="flex w-full rounded-xl bg-gray3 p-2 shadow-md dark:bg-slate3 sm:w-4/6 lg:w-5/12">
         <textarea
           ref={ref}
           value={query}
