@@ -1,6 +1,6 @@
 # Another PDF-Chatbot powered by OpenAI
 
-The main motivation behind the creation of this project was my interest in learning about Language Learning Models (LLMs) and exploring the capabilities of Next.js. I strongly believe that the best way to learn is by doing, and hence, I started working on this project.
+The main motivation behind the creation of this project was my interest in learning about Large Language Models (LLMs) and exploring the capabilities of Next.js. I strongly believe that the best way to learn is by doing, and hence, I started working on this project.
 
 ## Technologies Used
 
